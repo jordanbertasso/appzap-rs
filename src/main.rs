@@ -1,4 +1,5 @@
-use dialoguer::MultiSelect;
+use dialoguer::{Confirm, MultiSelect};
+use std::fs;
 use std::path::Path;
 use std::process::Command;
 
@@ -59,6 +60,7 @@ fn main() {
     let library = home_dir.join("Library");
     let prefs = library.join("Preferences");
     let home_apps = home_dir.join("Applications");
+    let apps = Path::new("/Applications");
     let system_apps = Path::new("/System/Applications");
     let app_support;
     let caches;
@@ -76,6 +78,7 @@ fn main() {
         caches,
         prefs,
         home_apps,
+        apps.to_path_buf(),
         system_apps.to_path_buf(),
     ];
 
@@ -151,4 +154,23 @@ fn main() {
     };
 
     println!("to_delete: {:?}", to_delete);
+
+    let confirmed = Confirm::new()
+        .with_prompt("Are you sure?")
+        .interact()
+        .expect("Failed to get confirmation");
+    println!("confirmed: {}", confirmed);
+
+    if confirmed {
+        for file in to_delete {
+            let p = Path::new(file);
+            // fs::rename(p, home_dir.join(".Trash")).expect("Unable to move file to Trash");
+            // fs::copy(p, home_dir.join(".Trash")).expect("Unable to move file to Trash");
+            println!("Removing {:?}", p);
+            match fs::remove_dir_all(p) {
+                Err(_) => fs::remove_file(p).expect("Unable to remove files"),
+                _ => continue
+            }
+        }
+    }
 }
