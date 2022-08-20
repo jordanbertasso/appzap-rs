@@ -1,18 +1,17 @@
-use dialoguer::{Confirm, MultiSelect};
 use std::fs;
 use std::path::Path;
 use std::process::Command;
 
-use glob::glob_with;
-use glob::MatchOptions;
+use dialoguer::{Confirm, MultiSelect};
+use glob::{glob_with, MatchOptions};
 
 #[macro_use]
 extern crate clap;
 extern crate dirs;
 
 #[derive(Debug)]
-struct Application<'a> {
-    path: &'a str,
+struct Application {
+    path: String,
     bundle_id: String,
 }
 
@@ -49,7 +48,7 @@ fn main() {
 
     // Initialise app struct
     let app = Application {
-        path: app_path,
+        path: app_path.to_owned(),
         bundle_id: get_bundle_id(&app_path).unwrap_or(String::default()),
     };
 
@@ -83,7 +82,7 @@ fn main() {
     ];
 
     // Add the parent directory if it's not included in our search path
-    let parent_dir = Path::new(app.path)
+    let parent_dir = Path::new(&app.path)
         .parent()
         .expect("No parent")
         .to_path_buf();
@@ -95,7 +94,7 @@ fn main() {
     // What we should look for in the above locations
     let ids = vec![
         app.bundle_id.as_str(),
-        Path::new(app.path)
+        Path::new(&app.path)
             .file_name()
             .expect("No file name")
             .to_str()
@@ -169,7 +168,7 @@ fn main() {
             println!("Removing {:?}", p);
             match fs::remove_dir_all(p) {
                 Err(_) => fs::remove_file(p).expect("Unable to remove files"),
-                _ => continue
+                _ => continue,
             }
         }
     }
